@@ -1,0 +1,20 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.env
+
+# Django
+backend/db.sqlite3
+backend/__pycache__/
+backend/*.pyc
+
+# Node / React
+frontend/node_modules/
+frontend/build/
+
+# Credentials
+credentials.json
