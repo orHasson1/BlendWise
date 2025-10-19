@@ -52,8 +52,17 @@ class EssentialOil(models.Model):
         unique=True,
         validators=[
             RegexValidator(
-                regex=r'^[A-Z][a-z]*( [A-Z][a-z]*)*$',
-                message='Name must contain only capitalized English words separated by single spaces.'
+                regex=(
+                    r'^[A-Z][a-z]*'
+                    r'( [A-Za-z]+)*'
+                    r'(, [A-Za-z]+)?'
+                    r'( \([A-Za-z ]+\))?$'
+                ),
+                message=(
+                    'Name must start with a capitalized word, subsequent words '
+                    '(including after a comma) can start with uppercase or lowercase letters, '
+                    'and may optionally end with a parenthetical (no nested parentheses).'
+                )
             )
         ]
     )
@@ -69,6 +78,7 @@ class Blend(models.Model):
     description = models.TextField(blank=True, null=True)
     oils = models.ManyToManyField(EssentialOil, through="BlendIngredient")
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="blends")
+    is_public = models.BooleanField(default=True, help_text="If false, only the creator can see this blend.")
 
     def __str__(self):
         return self.name
@@ -83,3 +93,33 @@ class BlendIngredient(models.Model):
 
 
 # OPTIONAL NEXT STEP: calculate the top aromas and vibes for a Blend based on its blend ingredients.
+
+class UserOilRelation(models.Model):
+    """Stores per-user classification of an oil as wishlist or owned.
+
+    A single oil cannot be simultaneously in both lists for the same user; we enforce this
+    at save time by deleting the opposite relation if it exists.
+    """
+    LIST_TYPES = (
+        ("wishlist", "Wishlist"),
+        ("owned", "Owned"),
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="oil_relations")
+    oil = models.ForeignKey(EssentialOil, on_delete=models.CASCADE, related_name="user_relations")
+    list_type = models.CharField(max_length=10, choices=LIST_TYPES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "oil", "list_type")
+        indexes = [
+            models.Index(fields=["user", "list_type"]),
+        ]
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Remove opposite list type if it exists to keep mutual exclusivity
+        opposite = "owned" if self.list_type == "wishlist" else "wishlist"
+        UserOilRelation.objects.filter(user=self.user, oil=self.oil, list_type=opposite).delete()
+
+    def __str__(self):
+        return f"{self.user.username} -> {self.oil.name} ({self.list_type})"

@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom component layer additions */
+@layer components {
+  .btn-primary { @apply inline-flex items-center justify-center rounded-md bg-brand text-white font-medium px-4 py-2 shadow-sm hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand transition; }
+  .btn-secondary { @apply inline-flex items-center justify-center rounded-md border border-brand/30 bg-white text-brand-dark font-medium px-4 py-2 hover:bg-brand-mist focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand transition; }
+  .btn-link { @apply text-brand hover:text-brand-light font-medium; }
+  .card { @apply bg-essence-card rounded-xl shadow-card border border-brand/15; }
+  .card-body { @apply p-5; }
+  .oil-grid { @apply grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4; }
+  .oil-badge { @apply inline-flex items-center rounded-full border border-brand/25 bg-brand-mist text-brand-dark text-xs font-medium px-2 py-0.5 mr-1 mb-1; }
+  .brand-pill { @apply inline-flex items-center rounded-full text-xs font-medium px-2 py-0.5; background: var(--accent-100); color: var(--accent-700); border: 1px solid var(--accent-300); }
+  .dark .brand-pill { background: rgba(110,160,120,0.16); color: var(--accent-600); border-color: var(--accent-400); }
+}
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    --font-display: 'Quicksand', 'Inter', sans-serif;
+    /* Type scale (base 16) */
+    --font-size-xs: 0.6875rem; /* 11px */
+    --font-size-sm: 0.8125rem; /* 13px */
+    --font-size-base: 0.9375rem; /* 15px - tighter than 16 for density */
+    --font-size-md: 1.125rem; /* 18px */
+    --font-size-lg: 1.375rem; /* 22px */
+    --font-size-xl: 1.75rem; /* 28px */
+    --font-size-2xl: 2.25rem; /* 36px */
+    /* Line-height tokens */
+    --line-tight: 1.15;
+    --line-default: 1.4;
+    --line-relaxed: 1.55; /* for body paragraphs */
+    --line-loose: 1.65;
+    /* Semantic role color tokens (light) */
+    --color-surface: #ffffff;
+    --color-surface-foreground: #0f172a; /* slate-900 */
+    --color-surface-muted: #f8faf9; /* essence.bg */
+    --color-surface-muted-foreground: #334155; /* slate-700 */
+  /* Updated accent -> teal primary */
+  --color-accent: #0d9488; /* teal 600 */
+  --color-accent-foreground: #ffffff;
+  /* Accent scale (generated / approximated) */
+  --accent-50: #ecfdfd;
+  --accent-100: #d5f9f7;
+  --accent-200: #b0f1ed;
+  --accent-300: #7ae4dd; /* airy teal */
+  --accent-400: #44d1c9;
+  --accent-500: #14b8a6; /* teal 500 */
+  --accent-600: #0d9488; /* teal 600 primary */
+  --accent-700: #0f766e; /* teal 700 */
+  --accent-800: #115e59; /* teal 800 */
+  --accent-900: #134e4a; /* teal 900 */
+  --color-focus-ring: #0d9488; /* teal primary */
+    --color-danger: #dc2626; /* red-600 */
+    --color-danger-foreground: #ffffff;
+    --color-subtle-border: rgba(15,23,42,0.12); /* slate shadow */
+    --color-subtle-border-strong: rgba(15,23,42,0.18);
+    --color-elevation-1: 0 1px 2px 0 rgba(0,0,0,0.04);
+    --color-elevation-2: 0 4px 18px -2px rgba(15,23,42,0.06), 0 2px 4px -1px rgba(15,23,42,0.04);
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 14px;
+  }
+  body { @apply bg-essence-bg text-slate-800 font-sans antialiased transition-colors; font-family: var(--font-sans); text-size-adjust: 100%; -webkit-text-size-adjust: 100%; line-height: var(--line-relaxed); font-size: var(--font-size-base); }
+  .dark body { @apply bg-slate-900 text-slate-100; }
+  h1,h2,h3,h4 { font-family: var(--font-display); }
+  h1,h2,h3,h4 { line-height: var(--line-tight); }
+  p { line-height: var(--line-relaxed); }
+  /* Compatibility helpers */
+  .supports-backdrop { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  .select-none { -webkit-user-select: none; user-select: none; }
+  .select-text { -webkit-user-select: text; user-select: text; }
+  .dark {
+    /* Semantic role color tokens (dark) */
+    --color-surface: #1e293b; /* slate-800-ish */
+    --color-surface-foreground: #f1f5f9; /* slate-100 */
+    --color-surface-muted: #0f172a; /* slate-900 */
+    --color-surface-muted-foreground: #cbd5e1; /* slate-300 */
+    --color-accent: #14b8a6; /* lighten in dark for contrast */
+    --color-accent-foreground: #083a37;
+  --accent-50: #042f2c;
+  --accent-100: #06403c;
+  --accent-200: #07524d;
+  --accent-300: #0a645e;
+  --accent-400: #0c7a72;
+  --accent-500: #0d9488; /* anchor */
+  --accent-600: #10b2a4; /* hover up */
+  --accent-700: #34d4c5; /* accent pop */
+  --accent-800: #8df2e7; /* pale mint */
+  --accent-900: #c9fbf6; /* high key */
+    --color-focus-ring: #14b8a6;
+    --color-danger: #f87171; /* red-400 */
+    --color-danger-foreground: #1e293b;
+    --color-subtle-border: rgba(255,255,255,0.14);
+    --color-subtle-border-strong: rgba(255,255,255,0.24);
+  }
+}
+
+/* Utility layer exposing role-based helpers */
+@layer utilities {
+  /* Color semantic + legacy alias bridge */
+  .text-primary { color: hsl(var(--color-accent)); }
+  .bg-primary { background-color: hsl(var(--color-accent)); }
+  .bg-primary-soft { background-color: hsl(var(--accent-50)); }
+  .ring-primary { --tw-ring-color: hsl(var(--color-accent)); }
+  .focus\:ring-primary:focus { --tw-ring-color: hsl(var(--color-accent)); }
+  /* Legacy brand aliases mapped to primary teal */
+  .text-brand { color: hsl(var(--color-accent)); }
+  .text-brand-light { color: hsl(var(--accent-500)); }
+  .text-brand-dark { color: hsl(var(--accent-700)); }
+  .bg-brand { background-color: hsl(var(--color-accent)); }
+  .bg-brand\/10 { background-color: hsl(var(--color-accent) / 0.10); }
+  .bg-brand-mist { background-color: hsl(var(--accent-50)); }
+  .hover\:bg-brand-mist:hover { background-color: hsl(var(--accent-100)); }
+  .ring-brand { --tw-ring-color: hsl(var(--color-accent)); }
+  .focus\:ring-brand:focus { --tw-ring-color: hsl(var(--color-accent)); }
+  .focus\:ring-brand\/50:focus { --tw-ring-color: hsl(var(--color-accent) / 0.5); }
+  .focus\:ring-brand\/60:focus { --tw-ring-color: hsl(var(--color-accent) / 0.6); }
+  .border-brand { border-color: hsl(var(--color-accent)); }
+  .border-brand\/30 { border-color: hsl(var(--color-accent) / 0.30); }
+  .border-brand\/25 { border-color: hsl(var(--color-accent) / 0.25); }
+  .border-brand\/20 { border-color: hsl(var(--color-accent) / 0.20); }
+  .bg-brand-accent { background-color: hsl(var(--accent-300)); }
+  .from-brand\/60 { --tw-gradient-from: hsl(var(--color-accent) / 0.60) var(--tw-gradient-from-position); --tw-gradient-to: hsl(var(--color-accent) / 0.00) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+  .via-brand-accent\/60 { --tw-gradient-stops: var(--tw-gradient-from), hsl(var(--accent-300) / 0.60) var(--tw-gradient-via-position), var(--tw-gradient-to); }
+  .to-brand\/60 { --tw-gradient-to: hsl(var(--color-accent) / 0.60) var(--tw-gradient-to-position); }
+  .role-surface { background-color: var(--color-surface); color: var(--color-surface-foreground); }
+  .role-surface-muted { background-color: var(--color-surface-muted); color: var(--color-surface-muted-foreground); }
+  .role-accent { background-color: var(--color-accent); color: var(--color-accent-foreground); }
+  .fg-default { color: var(--color-surface-foreground); }
+  .fg-muted { color: var(--fg-muted, var(--color-surface-muted-foreground)); }
+  .fg-subtle { color: var(--fg-subtle, var(--color-subtle-border-strong)); }
+  .fg-inverse { color: var(--fg-inverse, var(--color-accent-foreground)); }
+  .accent-bg { background: var(--accent-100); }
+  .accent-border { border-color: var(--accent-300); }
+  .accent-hover { background: var(--accent-200); }
+  .accent-active { background: var(--accent-300); }
+  .accent-ink { color: var(--accent-700); }
+  .dark .accent-ink { color: var(--accent-600); }
+  .role-danger { background-color: var(--color-danger); color: var(--color-danger-foreground); }
+  .role-border { border-color: var(--color-subtle-border); }
+  .role-border-strong { border-color: var(--color-subtle-border-strong); }
+  .focus-ring { outline: none; box-shadow: 0 0 0 2px var(--color-focus-ring), 0 0 0 4px var(--color-surface); }
+  .elevation-1 { box-shadow: var(--color-elevation-1); }
+  .elevation-2 { box-shadow: var(--color-elevation-2); }
+  .radius-sm { border-radius: var(--radius-sm); }
+  .radius-md { border-radius: var(--radius-md); }
+  .radius-lg { border-radius: var(--radius-lg); }
+  /* Type utility classes mapping tokens */
+  .text-xs-token { font-size: var(--font-size-xs); line-height: var(--line-tight); }
+  .text-sm-token { font-size: var(--font-size-sm); line-height: var(--line-default); }
+  .text-base-token { font-size: var(--font-size-base); line-height: var(--line-relaxed); }
+  .text-md-token { font-size: var(--font-size-md); line-height: var(--line-default); }
+  .text-lg-token { font-size: var(--font-size-lg); line-height: var(--line-tight); }
+  .text-xl-token { font-size: var(--font-size-xl); line-height: var(--line-tight); }
+  .text-2xl-token { font-size: var(--font-size-2xl); line-height: 1.1; }
+  .heading-display { font-family: var(--font-display); font-weight: 600; }
+  /* Overlay fade + lift */
+  .animate-overlay-enter { animation: overlay-enter 180ms cubic-bezier(.4,.1,.2,1); }
+  @keyframes overlay-enter { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-overlay-enter { animation: fade-in 120ms ease; }
+    @keyframes fade-in { from { opacity:0; } to { opacity:1; } }
+  }
+}

@@ -1,0 +1,19 @@
+<!-- Lotus icon styled to align with global.css token system.
+     Uses currentColor for stroke so host context can color it (primary in light, adjusted in dark).
+     Subtle inner fill uses accent variable with low opacity for airy feel. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="BlendWise lotus logo" fill="none">
+  <style>
+    :root & { color: hsl(var(--primary)); }
+    .dark & { color: hsl(var(--primary)); }
+  </style>
+  <g stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- central petal -->
+    <path d="M32 10c-3.8 6-6 11.3-6 16 0 5.8 3.9 11 6 13.2 2.1-2.2 6-7.4 6-13.2 0-4.7-2.2-10-6-16Z" />
+    <!-- mid cluster -->
+    <path d="M22.5 18c-3.6 4.3-5.5 8.2-5.5 12 0 4.9 3.3 8.8 6.8 11.4 1.2.9 4.5 2.9 8.2 4.3 3.7-1.4 7-3.4 8.2-4.3 3.5-2.6 6.8-6.5 6.8-11.4 0-3.8-1.9-7.7-5.5-12" />
+    <!-- outer arc petals -->
+    <path d="M14 24c-2 3.3-3 6.3-3 9.2 0 5.6 3.4 10 8.4 13.2 3.9 2.5 8.2 4 12.6 5 4.4-1 8.7-2.5 12.6-5C55.6 43.2 59 38.8 59 33.2c0-2.9-1-5.9-3-9.2" />
+    <!-- soft accent wash behind -->
+    <path d="M32 53c-4.2-1-8.5-2.5-12-4.8-5-3.2-8-7.4-8-12.5 0-1.8.4-3.7 1.2-5.7 1.2 6.2 5.5 11 11 14.4 3 1.8 5 2.6 7.8 2.6s4.8-.8 7.8-2.6c5.5-3.4 9.8-8.2 11-14.4.8 2 1.2 3.9 1.2 5.7 0 5.1-3 9.3-8 12.5-3.5 2.3-7.8 3.8-12 4.8Z" fill="hsl(var(--accent) / 0.35)" stroke="none" />
+  </g>
+</svg>
