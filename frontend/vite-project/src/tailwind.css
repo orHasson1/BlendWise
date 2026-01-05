@@ -61,6 +61,35 @@
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 14px;
+    /* Vibe category custom properties (light) */
+    --vibe-uplift-dot: #f59e0b; /* amber-500 */
+    --vibe-uplift-bg: #fffbeb; /* amber-50 */
+    --vibe-uplift-text: #92400e; /* amber-700 */
+    --vibe-immune-dot: #06b6d4; /* cyan-500 */
+    --vibe-immune-bg: #ecfeff; /* cyan-50 */
+    --vibe-immune-text: #0e7490; /* cyan-700 */
+    --vibe-romantic-dot: #e11d48; /* rose-600ish (using 500/600 middle) */
+    --vibe-romantic-bg: #fff1f5; /* rose-50 */
+    --vibe-romantic-text: #be123c; /* rose-700 */
+    --vibe-ground-dot: #047857; /* emerald-700/600 midpoint */
+    --vibe-ground-bg: #ecfdf5; /* emerald-50 */
+    --vibe-ground-text: #065f46; /* emerald-700 */
+    --vibe-soothe-dot: #fb923c; /* orange-400 */
+    --vibe-soothe-bg: #fff7ed; /* orange-50 */
+    --vibe-soothe-text: #c2410c; /* orange-700 */
+    --vibe-relax-dot: #8b5cf6; /* violet-500 */
+    --vibe-relax-bg: #f5f3ff; /* violet-50 */
+    --vibe-relax-text: #5b21b6; /* violet-700 */
+    --vibe-sleep-dot: #4338ca; /* indigo-700/600 */
+    --vibe-sleep-bg: #eef2ff; /* indigo-50 */
+    --vibe-sleep-text: #3730a3; /* indigo-700 */
+    --vibe-other-dot: #0d9488; /* teal-600 */
+    --vibe-other-bg: #f0fdfa; /* teal-50 */
+    --vibe-other-text: #0f766e; /* teal-700 */
+    /* Scrollbar tokens (light) */
+    --scrollbar-thumb: rgba(100,116,139,0.38); /* slate-500 alpha */
+    --scrollbar-thumb-hover: rgba(100,116,139,0.60);
+    --scrollbar-thumb-active: rgba(100,116,139,0.75);
   }
   body { @apply bg-essence-bg text-slate-800 font-sans antialiased transition-colors; font-family: var(--font-sans); text-size-adjust: 100%; -webkit-text-size-adjust: 100%; line-height: var(--line-relaxed); font-size: var(--font-size-base); }
   .dark body { @apply bg-slate-900 text-slate-100; }
@@ -94,7 +123,71 @@
     --color-danger-foreground: #1e293b;
     --color-subtle-border: rgba(255,255,255,0.14);
     --color-subtle-border-strong: rgba(255,255,255,0.24);
+    /* Vibe category custom properties (dark) */
+    --vibe-uplift-dot: #fbbf24; /* amber-400 */
+    --vibe-uplift-bg: rgba(120,80,0,0.35); /* tinted */
+    --vibe-uplift-text: #fcd34d; /* amber-300 */
+    --vibe-immune-dot: #22d3ee; /* cyan-400 */
+    --vibe-immune-bg: rgba(0,80,95,0.35);
+    --vibe-immune-text: #67e8f9; /* cyan-300 */
+    --vibe-romantic-dot: #fb7185; /* rose-400 */
+    --vibe-romantic-bg: rgba(110,15,40,0.35);
+    --vibe-romantic-text: #fecdd3; /* rose-200 */
+    --vibe-ground-dot: #059669; /* emerald-500 */
+    --vibe-ground-bg: rgba(5,70,55,0.35);
+    --vibe-ground-text: #6ee7b7; /* emerald-300 */
+    --vibe-soothe-dot: #fb923c; /* orange-400 */
+    --vibe-soothe-bg: rgba(120,50,0,0.35);
+    --vibe-soothe-text: #fdba74; /* orange-300 */
+    --vibe-relax-dot: #a78bfa; /* violet-400 */
+    --vibe-relax-bg: rgba(70,40,120,0.35);
+    --vibe-relax-text: #c4b5fd; /* violet-300 */
+    --vibe-sleep-dot: #6366f1; /* indigo-500 */
+    --vibe-sleep-bg: rgba(40,40,95,0.38);
+    --vibe-sleep-text: #a5b4fc; /* indigo-300 */
+    --vibe-other-dot: #14b8a6; /* teal-500 */
+    --vibe-other-bg: rgba(5,70,65,0.38);
+    --vibe-other-text: #5eead4; /* teal-300 */
+    /* Scrollbar tokens (dark) */
+    --scrollbar-thumb: rgba(148,163,184,0.35); /* slate-400 alpha */
+    --scrollbar-thumb-hover: rgba(148,163,184,0.55);
+    --scrollbar-thumb-active: rgba(148,163,184,0.70);
   }
+  /* Global scrollbar styling (Firefox) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+  /* WebKit scrollbars */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 9999px;
+    border: 2px solid transparent; /* creates gap */
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+  *::-webkit-scrollbar-thumb:active {
+    background-color: var(--scrollbar-thumb-active);
+  }
+  /* Scoped refine panel scrollbar (slightly narrower & toned) */
+  .refine-scroll::-webkit-scrollbar { width: 8px; }
+  .refine-scroll::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb); border: 2px solid transparent; border-radius: 8px; }
+  .refine-scroll::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover); }
+  .filter-options::-webkit-scrollbar { width: 8px; }
+  .filter-options::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb); border: 2px solid transparent; border-radius: 8px; }
+  .filter-options::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover); }
+  /* Utility: hide scrollbar visually but keep scrollability */
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
 /* Utility layer exposing role-based helpers */

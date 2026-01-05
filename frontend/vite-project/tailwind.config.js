@@ -34,7 +34,16 @@ export default {
       },
       boxShadow: {
         'card': '0 4px 18px -2px rgba(15,23,42,0.06), 0 2px 4px -1px rgba(15,23,42,0.04)'
-      }
+      },
+      animation: {
+        'slide-in': 'slideIn 0.3s ease-out',
+      },
+      keyframes: {
+        slideIn: {
+          '0%': { transform: 'translateX(100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+      },
     },
   },
   plugins: [

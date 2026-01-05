@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Droplets, CheckCircle2, Heart, FlaskConical, Layers, Home, X } from 'lucide-react';
-import { LogoMark } from '../Brand/Logo';
+import { Droplets, CheckCircle2, Heart, FlaskConical, Layers, Home, X, Plus } from 'lucide-react';
 import client from '../../api/client';
 import { cn } from '../../lib/utils';
 
@@ -17,16 +16,18 @@ const navSections = (isLoggedIn: boolean, counts: SummaryCounts) => [
   {
     label: 'Essential Oils',
     items: [
-      { to: '/oils', label: 'Catalog', icon: Droplets },
-      isLoggedIn && { to: '/oils/owned', label: 'Owned', icon: CheckCircle2, badge: counts.owned },
-      isLoggedIn && { to: '/oils/wishlist', label: 'Wishlist', icon: Heart, badge: counts.wishlist }
+  { to: '/essential-oils', label: 'Catalog', icon: Droplets },
+  isLoggedIn && { to: '/essential-oils/owned', label: 'Owned', icon: CheckCircle2, badge: counts.owned },
+  isLoggedIn && { to: '/essential-oils/wishlist', label: 'Wishlist', icon: Heart, badge: counts.wishlist }
     ].filter(Boolean) as any[]
   },
   {
     label: 'Blends',
     items: [
       { to: '/blends', label: 'Catalog', icon: FlaskConical },
-      isLoggedIn && { to: '/my-blends', label: 'My Blends', icon: Layers }
+      isLoggedIn && { to: '/blends/my-blends', label: 'My Blends', icon: Layers },
+  isLoggedIn && { to: '/blends/create', label: 'Create a Blend', icon: Plus },
+  isLoggedIn && { to: '/blends/favorites', label: 'Favorites', icon: Heart }
     ].filter(Boolean) as any[]
   }
 ];
@@ -59,14 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isLoggedIn, mobileOpen, onCloseMobile
 
   const content = (
     <nav aria-label="Primary" className="flex flex-col h-full py-4 overflow-y-auto">
-      <div className="px-4 pb-4 hidden md:block">
-        <button onClick={()=>navigate('/home')} className="flex items-center gap-2 group text-teal-700 dark:text-teal-400">
-          <span className="w-9 h-9 inline-flex items-center justify-center rounded-lg bg-teal-600/10 shadow-sm ring-1 ring-teal-600/30 group-hover:scale-105 transition-transform text-teal-700 dark:text-teal-400">
-            <LogoMark className="w-6 h-6" variant="gradient" />
-          </span>
-          <span className="text-lg font-semibold tracking-tight group-hover:text-teal-600 dark:group-hover:text-teal-300 transition-colors">BlendWise</span>
-        </button>
-      </div>
+      {/* Brand removed per request */}
       <div className="px-2 md:px-3 mb-2">
         <NavLink to="/home" className={({isActive}) => cn(baseItem, isActive ? 'bg-teal-600/10 text-teal-700 dark:text-teal-400' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800')}>
           <span className={"absolute left-0 top-0 bottom-0 w-1 rounded-r-full transition-colors " + (location.pathname==='/home' ? 'bg-teal-600' : 'group-hover:bg-slate-300 dark:group-hover:bg-slate-600')} />
@@ -103,8 +97,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isLoggedIn, mobileOpen, onCloseMobile
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 backdrop-blur supports-backdrop">
-        {content}
+      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 backdrop-blur supports-backdrop sticky top-14 h-[calc(100vh-3.5rem)]">
+        <div className="flex-1 min-h-0">
+          {content}
+        </div>
       </aside>
       {/* Mobile sheet */}
       {mobileOpen && (

@@ -90,6 +90,9 @@ class BlendIngredient(models.Model):
     blend = models.ForeignKey(Blend, on_delete=models.CASCADE)
     oil = models.ForeignKey(EssentialOil, on_delete=models.CASCADE)
     drops = models.PositiveIntegerField(default=1)
+    # Each ingredient must specify exactly one note classification (top/middle/base) chosen by the user.
+    # We keep this nullable temporarily for migration safety; validation will enforce selection on create.
+    note = models.ForeignKey(NoteType, on_delete=models.CASCADE, related_name='blend_ingredients', null=True, blank=True, help_text='Chosen note (top/middle/base) for this oil in the blend.')
 
 
 # OPTIONAL NEXT STEP: calculate the top aromas and vibes for a Blend based on its blend ingredients.
@@ -123,3 +126,24 @@ class UserOilRelation(models.Model):
 
     def __str__(self):
         return f"{self.user.username} -> {self.oil.name} ({self.list_type})"
+
+# --- Blend Favorites ---
+class UserBlendFavorite(models.Model):
+    """Stores a user's favorite (liked) blends.
+
+    A user may favorite any blend they can access (public or their own).
+    Uniqueness enforced so multiple favorites on same blend not duplicated.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blend_favorites')
+    blend = models.ForeignKey(Blend, on_delete=models.CASCADE, related_name='favorited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "blend")
+        indexes = [
+            models.Index(fields=["user"]),
+            models.Index(fields=["blend"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} ❤️ {self.blend.name}"

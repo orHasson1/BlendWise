@@ -3,6 +3,7 @@ import { Heart, CheckCircle2 } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import client from '../../api/client';
 import { Button } from '../ui/button';
+import { VIBE_CATEGORIES, categorizeVibe } from '../../design/vibes';
 
 interface EssentialOilCardProps {
   id: number;
@@ -20,11 +21,12 @@ interface EssentialOilCardPropsExtended extends EssentialOilCardProps {
   wishlist?: boolean;
   owned?: boolean;
   onStatusChange?: (update: {wishlist?: boolean; owned?: boolean}) => void;
+  hideTitle?: boolean; // when true, suppress internal name heading (modal already shows title)
 }
 
 const DESCRIPTION_THRESHOLD = 160; // character threshold to show Read more
 
-const EssentialOilCard: React.FC<EssentialOilCardPropsExtended> = ({ id, name, notes, aromas, vibes, noteMap, aromaMap, vibeMap, description, wishlist, owned, onStatusChange }) => {
+const EssentialOilCard: React.FC<EssentialOilCardPropsExtended> = ({ id, name, notes, aromas, vibes, noteMap, aromaMap, vibeMap, description, wishlist, owned, onStatusChange, hideTitle }) => {
   const [descExpanded, setDescExpanded] = React.useState(false);
   const isLong = !!description && description.length > DESCRIPTION_THRESHOLD;
   const renderBadges = (ids?: number[], map?: Record<number, string>) => {
@@ -40,45 +42,46 @@ const EssentialOilCard: React.FC<EssentialOilCardPropsExtended> = ({ id, name, n
     );
   };
 
-  const vibeColor = (label?: string) => {
-    if (!label) return 'bg-primary-soft text-teal-700 dark:text-teal-300';
-    const l = label.toLowerCase();
-    if (/(calm|sooth|peace|seren)/.test(l)) return 'bg-tone-calm/20 text-tone-calm';
-    if (/(energ|uplift|bright|happy)/.test(l)) return 'bg-tone-uplift/20 text-tone-uplift';
-    if (/(focus|clarity|center)/.test(l)) return 'bg-tone-focus/20 text-tone-focus';
-    if (/(relax|sleep|rest)/.test(l)) return 'bg-tone-relax/25 text-tone-relax';
-    if (/(warm|comfort|cozy)/.test(l)) return 'bg-tone-warm/25 text-tone-warm';
-    if (/(sooth|soft)/.test(l)) return 'bg-tone-soothe/25 text-tone-soothe';
-    return 'bg-primary-soft text-teal-700 dark:text-teal-300';
-  };
-
-  const vibeBadges = (vibes || [])
-    .map(v => ({ id: v, label: vibeMap?.[v] }))
-    .filter(v => v.label)
-    .map(v => (
-  <span key={v.id} className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs-token font-medium ${vibeColor(v.label)}`}>
-        {v.label}
-      </span>
-    ));
+  // Build vibe chips using centralized design tokens
+  const vibeChips = React.useMemo(() => {
+    return (vibes || [])
+      .map(id => ({ id, label: vibeMap?.[id] }))
+      .filter(v => v.label)
+      .map(v => {
+        const cat = categorizeVibe(v.label!);
+        const theme = VIBE_CATEGORIES[cat];
+        return (
+          <li key={v.id} className="contents">
+            <span
+              className={[
+                'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs-token font-medium',
+                'transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand',
+                theme.chipBgLight, 'dark:' + theme.chipBgDark,
+                theme.border,
+                theme.textLight, 'dark:' + theme.textDark
+              ].join(' ')}
+            >
+              <span aria-hidden="true" className={`h-2 w-2 rounded-full ${theme.dotLight} dark:${theme.dotDark}`} />
+              <span className="truncate max-w-[6.5rem]" title={v.label!}>{v.label}</span>
+            </span>
+          </li>
+        );
+      });
+  }, [vibes, vibeMap]);
 
   // Summary line: take first note + up to first two vibes for quick scanning
-  const primaryNote = (notes && notes.length && noteMap?.[notes[0]]) ? noteMap[notes[0]] : null;
-  const vibeCluster = (vibeBadges.length ? (vibes || [])
-    .map(id => vibeMap?.[id])
-    .filter(Boolean)
-    .slice(0,2)
-    : []);
-  const summaryParts = [primaryNote, vibeCluster.join(' / ')].filter(Boolean);
-  const summary = summaryParts.join(' • ');
+  // Removed summary line (note • vibes) per user request.
+  // If reintroduced, ensure shorter vibe labels or limit slashes for readability.
 
   return (
     <div className="card relative transition-shadow hover:shadow-lg dark:bg-slate-800 dark:border-slate-700">
       {(onStatusChange && (wishlist !== undefined || owned !== undefined)) && (
         <TooltipProvider delayDuration={150} skipDelayDuration={250}>
-          <div className="absolute top-2 right-2 flex gap-1 z-10">
+          {/* Single overlay toolbar container: pointer-events-none wrapper with interactive children */}
+          <div className="absolute top-2 right-2 flex gap-1 z-10 pointer-events-none">
             <Tooltip>
               <TooltipTrigger asChild>
-                <div>
+                <div className="pointer-events-auto">
                   <IconToggle
                     active={!!wishlist && !owned}
                     variant="wishlist"
@@ -101,7 +104,7 @@ const EssentialOilCard: React.FC<EssentialOilCardPropsExtended> = ({ id, name, n
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div>
+                <div className="pointer-events-auto">
                   <IconToggle
                     active={!!owned}
                     variant="owned"
@@ -126,7 +129,9 @@ const EssentialOilCard: React.FC<EssentialOilCardPropsExtended> = ({ id, name, n
         </TooltipProvider>
       )}
       <div className="card-body space-y-3 pr-12">
-  <h3 className="text-md-token font-semibold tracking-tight text-slate-800 dark:text-slate-100">{name}</h3>
+        {!hideTitle && (
+          <h3 className="text-md-token font-semibold tracking-tight text-slate-800 dark:text-slate-100" data-testid="oil-name">{name}</h3>
+        )}
         {description && (
           <div className="relative">
             <p id={`oil-desc-${id}`} className={"text-base-token text-slate-600 dark:text-slate-300 " + (descExpanded ? '' : 'line-clamp-3')}>{description}</p>
@@ -150,11 +155,7 @@ const EssentialOilCard: React.FC<EssentialOilCardPropsExtended> = ({ id, name, n
             )}
           </div>
         )}
-        {summary && (
-          <div className="text-sm text-slate-500 dark:text-slate-400">
-            {summary}
-          </div>
-        )}
+        {/* Summary line removed as requested */}
         <div className="space-y-2">
           <div>
             <div className="text-xs-token uppercase tracking-wide text-slate-500 dark:text-slate-400 font-medium mb-0.5">Notes</div>
@@ -165,11 +166,19 @@ const EssentialOilCard: React.FC<EssentialOilCardPropsExtended> = ({ id, name, n
             <div className="text-sm text-slate-700 dark:text-slate-200">{(aromas || []).map((n) => aromaMap?.[n] || '').filter(Boolean).join(', ') || '—'}</div>
           </div>
           <div>
-            <div className="text-xs-token uppercase tracking-wide text-slate-500 dark:text-slate-400 font-medium mb-0.5 flex items-center gap-2">Vibes {vibeBadges.length > 0 && <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />}</div>
-            {vibeBadges.length > 0 ? (
-              <div className="flex flex-wrap gap-1">{vibeBadges}</div>
-            ) : (
-              <div className="text-sm text-slate-700 dark:text-slate-200">—</div>
+            <div className="text-xs-token uppercase tracking-wide text-slate-500 dark:text-slate-400 font-medium mb-0.5 flex items-center gap-2">
+              Vibes {vibeChips.length > 0 && <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />}
+            </div>
+            {vibeChips.length === 0 && <div className="text-sm text-slate-700 dark:text-slate-200">—</div>}
+            {vibeChips.length > 0 && (
+              <ul role="list" aria-label="Emotional vibes" className="flex flex-wrap gap-1">
+                {vibeChips.slice(0,6)}
+                {vibeChips.length > 6 && (
+                  <li>
+                    <OverflowVibesButton total={vibeChips.length} hiddenItems={vibeChips.slice(6)} />
+                  </li>
+                )}
+              </ul>
             )}
           </div>
         </div>
@@ -188,6 +197,7 @@ const IconToggle: React.FC<IconToggleProps> = ({ active, variant, onClick }) => 
         onClick={onClick}
         aria-label={active ? 'Remove from wishlist' : 'Add to wishlist'}
         title={active ? 'Remove from wishlist' : 'Add to wishlist'}
+        aria-pressed={active}
         className={`${common} ${active ? 'bg-pink-100 border-pink-300 text-pink-600 dark:bg-pink-900/30 dark:border-pink-700 dark:text-pink-300' : 'bg-white/80 dark:bg-slate-800/70 border-slate-200 dark:border-slate-600 text-slate-500 hover:text-pink-600 hover:border-pink-300'}`}
       >
         <Heart className={`h-4 w-4 ${active ? 'fill-pink-500 text-pink-500' : ''}`} />
@@ -200,6 +210,7 @@ const IconToggle: React.FC<IconToggleProps> = ({ active, variant, onClick }) => 
       onClick={onClick}
       aria-label={active ? 'Remove from owned list' : 'Mark as owned'}
       title={active ? 'Remove from owned list' : 'Mark as owned'}
+      aria-pressed={active}
       className={`${common} ${active ? 'bg-emerald-100 border-emerald-300 text-emerald-600 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-emerald-300' : 'bg-white/80 dark:bg-slate-800/70 border-slate-200 dark:border-slate-600 text-slate-500 hover:text-emerald-600 hover:border-emerald-300'}`}
     >
       <CheckCircle2 className={`h-4 w-4 ${active ? 'text-emerald-600' : ''}`} />
@@ -208,3 +219,29 @@ const IconToggle: React.FC<IconToggleProps> = ({ active, variant, onClick }) => 
 };
 
 export default EssentialOilCard;
+
+// Overflow button that reveals hidden vibe chips inside tooltip
+const OverflowVibesButton: React.FC<{ total:number; hiddenItems: React.ReactNode[] }> = ({ total, hiddenItems }) => {
+  if (hiddenItems.length === 0) return null;
+  const hiddenCount = hiddenItems.length;
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            aria-label={`Show ${hiddenCount} more vibes (total ${total})`}
+            className="px-2 py-0.5 text-xs-token rounded-full border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-brand"
+          >
+            +{hiddenCount}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs">
+          <div className="flex flex-wrap gap-1">
+            {hiddenItems}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};

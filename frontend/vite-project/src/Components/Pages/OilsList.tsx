@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { X, Droplets, Filter, Search, ArrowUpAZ, ArrowDownAZ } from 'lucide-react';
 import client from '../../api/client';
-import EssentialOilCard from '../Common/EssentialOilCard';
+import EssentialOilCompactItem from '../Common/EssentialOilCompactItem';
 import { Button } from '../ui/button';
 import { Alert } from '../ui/alert';
 import { Badge } from '../ui/badge';
@@ -10,7 +10,7 @@ import { Input } from '../ui/input';
 import { Checkbox } from '../ui/checkbox';
 import Surface from '../Common/Surface';
 import PageHeader from '../Common/PageHeader';
-
+import { VIBE_CATEGORIES, categorizeVibe } from '../../design/vibes';
 interface Oil {
   id: number;
   name: string;
@@ -36,12 +36,19 @@ const OilsList: React.FC<OilsListProps> = ({ isLoggedIn = false }) => {
   const [sort, setSort] = useState<'name-asc' | 'name-desc'>('name-asc');
   const [wishlistIds, setWishlistIds] = useState<number[]>([]);
   const [ownedIds, setOwnedIds] = useState<number[]>([]);
+  // Only compact mode now
+  const [activeOilId] = useState<number | null>(null); // removed modal usage
+
+  // Precompute mapping tables once (avoid redoing per card render)
+  const noteMap = useMemo(() => Object.fromEntries(noteOptions.map(x => [x.id, (x as any).label || x.name])), [noteOptions]);
+  const aromaMap = useMemo(() => Object.fromEntries(aromaOptions.map(x => [x.id, (x as any).label || x.name])), [aromaOptions]);
+  const vibeMap = useMemo(() => Object.fromEntries(vibeOptions.map(x => [x.id, (x as any).label || x.name])), [vibeOptions]);
 
   useEffect(() => {
     let mounted = true;
     setLoading(true);
     client
-      .get('/oils/')
+      .get('/essential-oils/')
       .then((res) => {
         if (!mounted) return;
         setOils(res.data || []);
@@ -174,41 +181,42 @@ const OilsList: React.FC<OilsListProps> = ({ isLoggedIn = false }) => {
         title="Essential Oils"
         icon={<Droplets className="h-6 w-6" />}
         subtitle={`Explore ${filtered.length} ${filtered.length === 1 ? 'oil' : 'oils'}${filtered.length !== oils.length ? ` of ${oils.length}` : ''} • Refine by aromatic notes, aroma families & emotional vibes.`}
-        actions={(
-          <div className="flex items-center gap-2">
-            <span className="hidden md:inline text-xs text-slate-500 dark:text-slate-400">{filtered.length} result{filtered.length!==1 && 's'}</span>
-          </div>
-        )}
+        actions={<div className="hidden md:flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400" aria-label="Result count">{filtered.length} result{filtered.length!==1 && 's'}</div>}
       />
       {/* Layout with Refine Aside */}
       <div className="flex gap-8">
         {/* Desktop Aside */}
         <aside className="hidden lg:block w-64 shrink-0">
-          <div className="sticky top-[5.25rem] space-y-6">
-            <Surface elevation={1} className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-300 flex items-center gap-1"><Filter className="h-4 w-4" />Refine</h2>
-                {(selectedNotes.length+selectedAromas.length+selectedVibes.length>0 || search) && (
-                  <button onClick={clearFilters} className="text-xs text-brand hover:underline">Reset</button>
-                )}
-              </div>
-              <div className="mb-4">
-                <div className="relative">
-                  <Input type="search" value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search..." className="pl-8" />
-                  <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
+          {/* Use fixed height instead of only max-h so internal flex layout can calculate and overflow */}
+          <div className="sticky top-[5.25rem] h-[calc(100vh-5.25rem)] pr-1">
+            <Surface elevation={1} className="p-0 h-full flex flex-col">
+              {/* Fixed header portion */}
+              <div className="p-4 pb-3 border-b border-slate-200/70 dark:border-slate-700/60">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-300 flex items-center gap-1"><Filter className="h-4 w-4" />Refine</h2>
+                  {(selectedNotes.length+selectedAromas.length+selectedVibes.length>0 || search) && (
+                    <button onClick={clearFilters} className="text-xs text-brand hover:underline">Reset</button>
+                  )}
+                </div>
+                <div className="mt-3">
+                  <div className="relative">
+                    <Input type="search" value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search..." className="pl-8" />
+                    <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-4">
+              {/* Scrollable content area */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 refine-scroll scrollbar-thin">
                 {filterGroups.map(g => (
                   <FilterGroup key={g.key} title={g.title} options={g.options} selected={g.selected} onToggle={g.toggle} />
                 ))}
-              </div>
-              <div className="pt-2 border-t border-slate-200 dark:border-slate-700 mt-4">
-                <label className="block text-xs font-medium mb-1 text-slate-500 dark:text-slate-400">Sort</label>
-                <select value={sort} onChange={e=>setSort(e.target.value as any)} className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-brand">
-                  <option value="name-asc">Name A → Z</option>
-                  <option value="name-desc">Name Z → A</option>
-                </select>
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <label className="block text-xs font-medium mb-1 text-slate-500 dark:text-slate-400">Sort</label>
+                  <select value={sort} onChange={e=>setSort(e.target.value as any)} className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm px-2 py-1 focus:outline-none focus:ring-2 focus:ring-brand">
+                    <option value="name-asc">Name A → Z</option>
+                    <option value="name-desc">Name Z → A</option>
+                  </select>
+                </div>
               </div>
             </Surface>
           </div>
@@ -232,9 +240,20 @@ const OilsList: React.FC<OilsListProps> = ({ isLoggedIn = false }) => {
               {selectedAromas.map(id => (
                 <Badge key={`chip-aroma-${id}`} variant="primary" className="flex items-center gap-1 pr-1">{optionLabel(aromaOptions, id)}<button className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded hover:bg-teal-600/15" onClick={()=>toggle(setSelectedAromas, selectedAromas, id)}><X className="h-3 w-3" /></button></Badge>
               ))}
-              {selectedVibes.map(id => (
-                <Badge key={`chip-vibe-${id}`} variant="primary" className="flex items-center gap-1 pr-1">{optionLabel(vibeOptions, id)}<button className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded hover:bg-teal-600/15" onClick={()=>toggle(setSelectedVibes, selectedVibes, id)}><X className="h-3 w-3" /></button></Badge>
-              ))}
+              {selectedVibes.map(id => {
+                const label = optionLabel(vibeOptions, id);
+                const cat = categorizeVibe(label);
+                const theme = VIBE_CATEGORIES[cat];
+                return (
+                  <span key={`chip-vibe-${id}`} className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs-token font-medium ${theme.chipBgLight} dark:${theme.chipBgDark} ${theme.border} ${theme.textLight} dark:${theme.textDark}`}>
+                    <span aria-hidden="true" className={`h-2 w-2 rounded-full ${theme.dotLight} dark:${theme.dotDark}`} />
+                    <span className="truncate max-w-[5.5rem]" title={label}>{label}</span>
+                    <button aria-label="Remove vibe filter" className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded hover:bg-slate-200/50 dark:hover:bg-slate-600/40" onClick={()=>toggle(setSelectedVibes, selectedVibes, id)}>
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                );
+              })}
               <Button variant="secondary" size="sm" onClick={clearFilters}>Clear All</Button>
             </div>
           )}
@@ -277,31 +296,15 @@ const OilsList: React.FC<OilsListProps> = ({ isLoggedIn = false }) => {
                 </div>
               </div>
             ) : (
-              <div className="oil-grid">
-                {filtered.map((o) => (
-                  <EssentialOilCard
+              <div className="space-y-1" role="list" aria-label="Essential oils list (compact)">
+                {filtered.map(o => (
+                  <EssentialOilCompactItem
                     key={o.id}
                     id={o.id}
                     name={o.name}
-                    notes={o.notes}
-                    aromas={o.aromas}
-                    vibes={o.vibes}
-                    description={o.description}
-                    noteMap={Object.fromEntries(noteOptions.map((x) => [x.id, (x as any).label || x.name]))}
-                    aromaMap={Object.fromEntries(aromaOptions.map((x) => [x.id, (x as any).label || x.name]))}
-                    vibeMap={Object.fromEntries(vibeOptions.map((x) => [x.id, (x as any).label || x.name]))}
-                    wishlist={isLoggedIn ? wishlistIds.includes(o.id) : undefined}
                     owned={isLoggedIn ? ownedIds.includes(o.id) : undefined}
-                    onStatusChange={isLoggedIn ? (u)=>{
-                      if (u.wishlist !== undefined) {
-                        setWishlistIds(prev => u.wishlist ? [...new Set([...prev, o.id])] : prev.filter(id => id !== o.id));
-                        if (u.wishlist) setOwnedIds(prev => prev.filter(id => id !== o.id));
-                      }
-                      if (u.owned !== undefined) {
-                        setOwnedIds(prev => u.owned ? [...new Set([...prev, o.id])] : prev.filter(id => id !== o.id));
-                        if (u.owned) setWishlistIds(prev => prev.filter(id => id !== o.id));
-                      }
-                    } : undefined}
+                    wishlist={isLoggedIn ? wishlistIds.includes(o.id) : undefined}
+                    onOpen={(id)=>{ window.location.href = `/essential-oils/${id}`; }}
                   />
                 ))}
               </div>
@@ -309,6 +312,7 @@ const OilsList: React.FC<OilsListProps> = ({ isLoggedIn = false }) => {
           </div>
         </div>
       </div>
+      {/* Modal removed: navigation now handles detail view */}
       {/* Mobile Refine Drawer */}
       {refineOpen && (
         <div className="lg:hidden">
@@ -358,14 +362,28 @@ const FilterGroup: React.FC<{title:string; options:{id:number; name:string}[]; s
         <span className="text-xs text-slate-500 dark:text-slate-400">{open ? '−' : '+'}</span>
       </button>
       {open && (
-        <div className="max-h-56 overflow-y-auto p-2 space-y-1">
+        <div className="max-h-56 overflow-y-auto p-2 space-y-1 scrollbar-thin filter-options">
           {options.length === 0 && <div className="text-xs text-slate-400 px-1 py-1">No options</div>}
           {options.map(o => {
             const active = selected.includes(o.id);
+            const label = (o as any).label || o.name;
+            // If this is the vibes group (heuristic: title starts with 'Vibes' or options === vibeOptions length?) we show dot.
+            const isVibeGroup = /^Vibes/i.test(title);
+            let catTheme: any = null;
+            if (isVibeGroup) {
+              const cat = categorizeVibe(label);
+              catTheme = VIBE_CATEGORIES[cat];
+            }
             return (
               <label key={o.id} className="flex items-center gap-2 px-1 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700/60 text-sm-token cursor-pointer">
                 <Checkbox checked={active} onCheckedChange={()=>onToggle(o.id)} />
-                <span className="flex-1 truncate">{(o as any).label || o.name}</span>
+                {isVibeGroup && (
+                  <span aria-hidden="true" className={`h-2 w-2 rounded-full ${catTheme.dotLight} dark:${catTheme.dotDark}`} />
+                )}
+                <span className="flex-1 truncate" title={label}>{label}</span>
+                {active && isVibeGroup && (
+                  <span className={`inline-flex items-center rounded-full border ml-auto px-1.5 py-0.5 text-[10px] font-medium ${catTheme.chipBgLight} dark:${catTheme.chipBgDark} ${catTheme.border} ${catTheme.textLight} dark:${catTheme.textDark}`}>On</span>
+                )}
               </label>
             );
           })}

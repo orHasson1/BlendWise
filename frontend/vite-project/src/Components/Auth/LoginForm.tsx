@@ -19,41 +19,53 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToRegister }) =>
   const [message, setMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string,string>>({});
 
+  const [pending, setPending] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (pending) return;
+    setPending(true);
     setError('');
     setMessage('');
+    setFieldErrors({});
 
     try {
-      const resp = await client.post('/login/', { login: loginValue, password });
+      const resp = await client.post('/login/', { login: loginValue.trim(), password });
       const data = resp.data;
-      if (data.token) {
-        if (rememberMe) localStorage.setItem('token', data.token);
-        else sessionStorage.setItem('token', data.token);
-        onLogin(data.token);
-        setMessage('Sign in successful!');
-      }
-    } catch (err) {
-      const anyErr: any = err;
-      const data = anyErr.response?.data;
-      if (!data) {
-        setError('Network error');
+      if (!data?.token) {
+        setError('Unexpected response: no token returned');
         return;
       }
-      // DRF may return { error: '...' } or field-specific errors
-      if (typeof data === 'object') {
-        const newFieldErrors: Record<string,string> = {};
-        for (const key of Object.keys(data)) {
-          const val = data[key];
-          if (Array.isArray(val)) newFieldErrors[key] = val.join(' ');
-          else newFieldErrors[key] = String(val);
-        }
-        setFieldErrors(newFieldErrors);
-        if (newFieldErrors.non_field_errors) setError(newFieldErrors.non_field_errors);
-        if (newFieldErrors.error) setError(newFieldErrors.error);
-      } else {
-        setError(String(data));
+      (rememberMe ? localStorage : sessionStorage).setItem('token', data.token);
+      onLogin(data.token);
+      setMessage('Signed in successfully');
+    } catch (err: any) {
+      if (err.message === 'Network Error') {
+        setError('Cannot reach server. Is the backend running on port 8000?');
+        return;
       }
+      const status = err.response?.status;
+      const data = err.response?.data;
+      if (status === 400 || status === 401) {
+        // DRF custom error or validation errors
+        if (typeof data === 'object' && data) {
+          const newFieldErrors: Record<string,string> = {};
+          Object.keys(data).forEach(key => {
+            const val = data[key];
+            newFieldErrors[key] = Array.isArray(val) ? val.join(' ') : String(val);
+          });
+            setFieldErrors(newFieldErrors);
+          const topError = newFieldErrors.error || newFieldErrors.non_field_errors;
+          setError(topError || 'Invalid credentials');
+        } else {
+          setError(typeof data === 'string' ? data : 'Invalid credentials');
+        }
+      } else if (status === 0) {
+        setError('Network unreachable');
+      } else {
+        setError(`Unexpected error (${status || 'unknown'})`);
+      }
+    } finally {
+      setPending(false);
     }
   };
 
@@ -97,7 +109,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToRegister }) =>
         Remember me
       </label>
 
-  <Button type="submit" className="w-full">Sign In</Button>
+  <Button type="submit" className="w-full" disabled={pending}>{pending ? 'Signing in…' : 'Sign In'}</Button>
 
       <div className="text-center text-sm">
         <button type="button" className="btn-link" onClick={() => {
