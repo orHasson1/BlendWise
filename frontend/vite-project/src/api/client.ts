@@ -28,19 +28,23 @@ client.interceptors.request.use((config) => {
 });
 
 // Optional: global 401 handling + retry on cold start (Render free tier returns HTML 404 while waking)
+const MAX_COLD_START_RETRIES = 5;
+const COLD_START_DELAY_MS = 10000; // 10 seconds between retries
+
 client.interceptors.response.use(
   (res) => res,
   async (err) => {
     const config = err.config;
-    // Retry once if we get an HTML response (Render cold start proxy page)
+    config._retryCount = config._retryCount || 0;
+    // Retry if we get an HTML response (Render cold start proxy page)
     if (
-      !config._retried &&
+      config._retryCount < MAX_COLD_START_RETRIES &&
       err.response &&
       typeof err.response.data === 'string' &&
       err.response.data.includes('<!doctype html>')
     ) {
-      config._retried = true;
-      await new Promise((r) => setTimeout(r, 5000));
+      config._retryCount += 1;
+      await new Promise((r) => setTimeout(r, COLD_START_DELAY_MS));
       return client(config);
     }
     if (err.response && err.response.status === 401) {

@@ -57,8 +57,12 @@ const OilsList: React.FC<OilsListProps> = ({ isLoggedIn = false }) => {
         console.error(err);
         if (!mounted) return;
         // show a more helpful error message when available
-        const msg = err?.response?.data || err?.message || 'Failed to load oils';
-        setError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+        const raw = err?.response?.data || err?.message || 'Failed to load oils';
+        if (typeof raw === 'string' && raw.includes('<!doctype html>')) {
+          setError('Server is waking up — please refresh in a moment.');
+        } else {
+          setError(typeof raw === 'string' ? raw : JSON.stringify(raw));
+        }
       })
       .finally(() => {
         if (!mounted) return;
