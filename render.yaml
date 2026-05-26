@@ -10,7 +10,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r backend/requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate && python manage.py seed_oils
-    startCommand: gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: python manage.py migrate --noinput && python manage.py seed_oils && gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: DATABASE_URL
         fromDatabase:
