@@ -8,7 +8,7 @@ const client = axios.create({
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
-  timeout: 10000,
+  timeout: 30000,
 });
 
 // small debug: print base URL so it's obvious in the browser console what the client will call
@@ -27,14 +27,25 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-// Optional: global 401 handling
+// Optional: global 401 handling + retry on cold start (Render free tier returns HTML 404 while waking)
 client.interceptors.response.use(
   (res) => res,
-  (err) => {
+  async (err) => {
+    const config = err.config;
+    // Retry once if we get an HTML response (Render cold start proxy page)
+    if (
+      !config._retried &&
+      err.response &&
+      typeof err.response.data === 'string' &&
+      err.response.data.includes('<!doctype html>')
+    ) {
+      config._retried = true;
+      await new Promise((r) => setTimeout(r, 5000));
+      return client(config);
+    }
     if (err.response && err.response.status === 401) {
       localStorage.removeItem('token');
       sessionStorage.removeItem('token');
-      // Could redirect to /login here if desired
     }
     return Promise.reject(err);
   }
