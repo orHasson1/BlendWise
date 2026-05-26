@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-export const API = (import.meta.env.VITE_API_URL as string) || 'http://127.0.0.1:8000/api';
+export const API = (() => {
+  const base = (import.meta.env.VITE_API_URL as string) || 'http://127.0.0.1:8000/api';
+  return base.endsWith('/api') ? base : `${base}/api`;
+})();
 
 const client = axios.create({
   baseURL: API,
