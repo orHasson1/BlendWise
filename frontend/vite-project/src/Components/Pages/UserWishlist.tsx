@@ -156,7 +156,7 @@ const UserWishlist: React.FC = () => {
           icon={<Heart className="h-8 w-8 text-brand" />}
           title="Wishlist is empty"
           description="Save interesting oils to revisit them quickly and plan future purchases or blends."
-          action={<Button variant="secondary" onClick={()=>window.location.href='/oils'}>Explore Oils</Button>}
+          action={<Button variant="secondary" onClick={()=>window.location.href='/essential-oils'}>Explore Oils</Button>}
         />
       )}
       {oils.length > 0 && (

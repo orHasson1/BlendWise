@@ -158,7 +158,7 @@ const UserOwned: React.FC = () => {
           icon={<PackageOpen className="h-8 w-8 text-brand" />}
           title="No owned oils yet"
           description="Mark oils as owned from the catalog to build your personal inventory and unlock blend insights."
-          action={<Button variant="secondary" onClick={()=>window.location.href='/oils'}>Browse Catalog</Button>}
+          action={<Button variant="secondary" onClick={()=>window.location.href='/essential-oils'}>Browse Catalog</Button>}
         />
       )}
       {oils.length > 0 && (
